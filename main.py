@@ -16,7 +16,7 @@ def menu():
         cargar_archivo()
         #cargar archivo
     elif op == 2:
-        print("2")
+        graficoRutas()
         #graficar ruta
     elif op == 3:
         graficoMapa()
@@ -236,22 +236,10 @@ def cargar_archivo():
             
                 estado=operacion(caracterf,estado,x,y)
         tablas()
-        '''
-        print(f'Tokens: {Token}')
-        print(f'x : {columna_T}')
-        print(f'y : {Fila_T}')
-        print(f'Lexema: {Lexema}')
-        print(f'Error: {Error}')
-        print(f'Descripcion {Descripcion}')
-        print(f'x error: {columna_E}')
-        print(f'y error: {Fila_E}')
-        '''
         archivo.close()
         
         if input()=="exit":
             menu()
-
-
     except:
         print("No se pudo abrir el documento")
         menu()
@@ -294,17 +282,17 @@ def graficoMapa():
         n=0
         for p in Nodo_nombre:
             temp_contenido=f""" 
-            {Nodo_nombre[n]} [label="{Nodo_nombre[n]}
-            {Nodo_estado[n]}" style="filled" fillcolor="{Nodo_color[n]}"];
-            """
+{Nodo_nombre[n]} [label="{Nodo_nombre[n]}
+{Nodo_estado[n]}" style="filled" fillcolor="{Nodo_color[n]}"];
+"""
             contenido+=temp_contenido
             n+=1
         n=0
         for p in C_nombre:
             temp_contenido=f""" 
-            {C_inicio[n]}->{C_fin[n]}[label="{C_nombre[n]} 
-            peso: {C_peso[n]}" ];
-            """
+{C_inicio[n]}->{C_fin[n]}[label="{C_nombre[n]} 
+peso: {C_peso[n]}" ];
+"""
             contenido+=temp_contenido
             n+=1
         contenido+="}"
@@ -312,13 +300,105 @@ def graficoMapa():
         archivo.close()
         
         os.system('dot -Tpng grafica.dot -o imagenlab.png')
-        if imput()=="exit":
-            menu()
     except:
-        if imput()=="exit":
-            menu()
+        menu()
 
 def graficoRutas():
-    print("este es un grafico xd")
+        v_inicio=str(input("Ingresar la estacion de inicio"))
+        v_fin=str(input("Ingresar la estacion final"))
+        estamos="nada"
+        estaciones=list()
+        Nodo_color=list()
+        Nodo_estado=list()
+        C_nombre=list()
+        C_peso=list()
+        C_fin=list()
+        C_inicio=list()
+        n=0
+        for p in Token:
+            if Token[n]=="estacion":
+                estamos="estacion"
+            elif Token[n]=="ruta":
+                estamos="ruta"
+            elif Token[n]=="nombre" and estamos=="estacion":
+                estaciones.append(Lexema[n])
+            elif Token[n]=="color" and estamos=="estacion":
+                Nodo_color.append(Lexema[n])
+            elif Token[n]=="estado" and estamos=="estacion":
+                Nodo_estado.append(Lexema[n])
+            elif Token[n]=="nombre" and estamos=="ruta":
+                C_nombre.append(Lexema[n])
+            elif Token[n]=="peso" and estamos=="ruta":
+                C_peso.append(Lexema[n])
+            elif Token[n]=="inicio" and estamos=="ruta":
+                C_inicio.append(Lexema[n])
+            elif Token[n]=="fin" and estamos=="ruta":
+                C_fin.append(Lexema[n])
+            n+=1
+        q=0
+        for p in estaciones:
+            if p==v_inicio or p==v_fin:
+                q+=1 
+        posicion=list()
+        cabeza=list()
+        if  q==2:
+            n=0
+            k=len(C_inicio)-1
+            cabeza.append(v_inicio)
+            try:
+                while True:
+                    if cabeza[len(cabeza)-1]==v_fin:
+                        cabeza.append(v_fin)
+                        break
+                    elif cabeza[len(cabeza)-1]==C_inicio[n]:
+                        cabeza.append(C_fin[n])
+                        posicion.append(n)
+                        n=0
+                    elif k==n:
+                        cabeza.pop()
+                        posicion.pop()
+                        posicion[len(posicion)-1]+=1
+                        n=0
+                    n+=1
+            except:
+                print("Error al intentar encontrar una ruta")
+                menu()
+        print(cabeza)
+        print(posicion)
 
-menu()    
+        archivo=open('graficaRuta.dot', 'w')
+        contenido="digraph Ruta{"
+
+        n=0
+        k=0
+        posciones2=list()
+        for p in estaciones:
+
+            if k==(len(cabeza)-1):
+                break
+            elif p==cabeza[k]:
+                posciones2.append(n)
+                k+=1
+            n+=1
+
+        for p in posciones2:
+            temp_contenido=f""" 
+{estaciones[p]} [label="{estaciones[p]}
+{Nodo_estado[p]}" style="filled" fillcolor="{Nodo_color[p]}"];
+"""
+            contenido+=temp_contenido
+
+        for p in posicion:
+            temp_contenido=f""" 
+{C_inicio[p]}->{C_fin[p]}[label="{C_nombre[p]} 
+peso: {C_peso[p]}" ];
+"""
+            contenido+=temp_contenido
+        contenido+="}"
+        archivo.write(contenido)
+        archivo.close()
+
+
+
+    
+menu()   
