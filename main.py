@@ -298,6 +298,9 @@ peso: {C_peso[n]}" ];
         contenido+="}"
         archivo.write(contenido)
         archivo.close()
+
+        if input()=="exit":
+            menu()
         
         os.system('dot -Tpng grafica.dot -o imagenlab.png')
     except:
@@ -363,8 +366,6 @@ def graficoRutas():
             except:
                 print("Error al intentar encontrar una ruta")
                 menu()
-        print(cabeza)
-        print(posicion)
 
         archivo=open('graficaRuta.dot', 'w')
         contenido="digraph Ruta{"
@@ -397,7 +398,8 @@ peso: {C_peso[p]}" ];
         contenido+="}"
         archivo.write(contenido)
         archivo.close()
-
+    if input()=="exit":
+        menu()
 
 
     
