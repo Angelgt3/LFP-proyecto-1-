@@ -1,5 +1,6 @@
 import io
 import webbrowser
+import os
 
 def mostrar():
     print(
@@ -18,7 +19,8 @@ def menu():
         print("2")
         #graficar ruta
     elif op == 3:
-        print("3")
+        graficoMapa()
+        #graficar ruta
     elif op == 4:
         print("Bye :  )")
     else:
@@ -231,7 +233,7 @@ def cargar_archivo():
                 caracterf=caracte.strip()
                 if caracterf=="":
                     continue   
-                
+            
                 estado=operacion(caracterf,estado,x,y)
         tablas()
         '''
@@ -254,5 +256,69 @@ def cargar_archivo():
         print("No se pudo abrir el documento")
         menu()
 
+
+def graficoMapa():
+    try:
+        archivo=open('graficaMapa.dot', 'w')
+        contenido="digraph mapa{"
+        n=0
+        estamos="nada"
+        Nodo_nombre=list()
+        Nodo_color=list()
+        Nodo_estado=list()
+        C_nombre=list()
+        C_peso=list()
+        C_fin=list()
+        C_inicio=list()
+        for p in Token:
+            texto_tem=""
+            if Token[n]=="estacion":
+                estamos="estacion"
+            elif Token[n]=="ruta":
+                estamos="ruta"
+            elif Token[n]=="nombre" and estamos=="estacion":
+                Nodo_nombre.append(Lexema[n])
+            elif Token[n]=="color" and estamos=="estacion":
+                Nodo_color.append(Lexema[n])
+            elif Token[n]=="estado" and estamos=="estacion":
+                Nodo_estado.append(Lexema[n])
+            elif Token[n]=="nombre" and estamos=="ruta":
+                C_nombre.append(Lexema[n])
+            elif Token[n]=="peso" and estamos=="ruta":
+                C_peso.append(Lexema[n])
+            elif Token[n]=="inicio" and estamos=="ruta":
+                C_inicio.append(Lexema[n])
+            elif Token[n]=="fin" and estamos=="ruta":
+                C_fin.append(Lexema[n])
+            n+=1
+        n=0
+        for p in Nodo_nombre:
+            temp_contenido=f""" 
+            {Nodo_nombre[n]} [label="{Nodo_nombre[n]}
+            {Nodo_estado[n]}" style="filled" fillcolor="{Nodo_color[n]}"];
+            """
+            contenido+=temp_contenido
+            n+=1
+        n=0
+        for p in C_nombre:
+            temp_contenido=f""" 
+            {C_inicio[n]}->{C_fin[n]}[label="{C_nombre[n]} 
+            peso: {C_peso[n]}" ];
+            """
+            contenido+=temp_contenido
+            n+=1
+        contenido+="}"
+        archivo.write(contenido)
+        archivo.close()
+        
+        os.system('dot -Tpng grafica.dot -o imagenlab.png')
+        if imput()=="exit":
+            menu()
+    except:
+        if imput()=="exit":
+            menu()
+
+def graficoRutas():
+    print("este es un grafico xd")
 
 menu()    
