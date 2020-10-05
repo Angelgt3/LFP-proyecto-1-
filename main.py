@@ -36,9 +36,8 @@ Fila_E=list()
 columna_E=list()
 texto_tem=list()
 Descripcion=list()
-
+Titulo_l=list()
 avanzar=['<','>','<','>','<','/','>','<','/','>']
-
 def comprobar(estado,x,y):
     if estado==5:
         u_token = Token[len(Token)-1]
@@ -77,6 +76,32 @@ def comprobar(estado,x,y):
                     Fila_E.append(y)     
                 x2+=1     
 
+def titulo(cadena,estado,x,y):
+    if cadena.isalpha() or cadena.isdigit() or cadena=='.' or cadena=='_' or cadena =='>' or cadena== '<' or cadena=='/' or cadena=="#":
+        if cadena=="<":
+            texto=""
+            for c in texto_tem:
+                texto+=c
+            Lexema.append(texto)
+            Titulo_l.append(texto)
+            for i in range(len(texto_tem)):
+                texto_tem.pop()
+        elif cadena=="/":
+            comprobar(estado,x,y)
+        elif cadena==">":
+            estado=0
+            for i in range(len(texto_tem)):
+                    texto_tem.pop()
+            return estado
+        else:
+            texto_tem.append(cadena)
+    else:
+        Error.append(cadena)
+        Descripcion.append(f"No se acepta el caracter")
+        columna_E.append(x)
+        Fila_E.append(y)
+        return estado
+    return estado
 
 def q0257(cadena,estado,x,y):
     if cadena==avanzar[estado]:
@@ -101,13 +126,17 @@ def q13469(cadena,estado,x,y):
                     texto+=c
                 if estado==1:
                     Token.append(texto)
-                    Lexema.append(" ")
+                    if not texto=="nombre":
+                        Lexema.append(" ")  
                 elif estado ==3:
                     Token.append(texto)
                 elif estado==4:
                     Lexema.append(texto)
                 for i in range(len(texto_tem)):
                     texto_tem.pop()
+                if estado==1 and texto=="nombre":
+                    estado=909
+                    return estado
             if estado==9:
                 estado=0
             else:
@@ -145,6 +174,8 @@ def operacion(caracter,estado,x,y):
         estado=q13469(caracter,estado,x,y)
     elif estado==8:
         estado=q8(caracter,estado,x,y)
+    elif estado>=909:
+        estado=titulo(caracter,estado,x,y)
     return estado
 
 
@@ -163,19 +194,19 @@ def tablas():
                     </TR>
             """
         n=0
-        mensaje2=""
+        mensaje2="" 
         for e in Error:
             n+=1
             temp_mensaje=f"""
-                        <TR>
-                            <TD>{n}</TD> <TD>{Fila_E[n-1]}</TD> <TD>{columna_E[n-1]}</TD><TD>{Error[n-1]}</TD><TD>{Descripcion[n-1]}</TD>
-                        </TR>"""
-            mensaje3="""
-                    </TABLE>
-                </body>
-            </html>
-                """
+                    <TR>
+                        <TD>{n}</TD> <TD>{Fila_E[n-1]}</TD> <TD>{columna_E[n-1]}</TD><TD>{Error[n-1]}</TD><TD>{Descripcion[n-1]}</TD>
+                    </TR>"""
             mensaje2+=temp_mensaje
+        mensaje3="""
+                </TABLE>
+            </body>
+        </html>
+                """
         mensajefinal=mensaje+mensaje2+mensaje3
         f.write(mensajefinal)
         f.close()
@@ -199,12 +230,13 @@ def tablas():
                         <TR>
                             <TD>{n}</TD> <TD>{Lexema[n-1]}</TD> <TD>{Fila_T[n-1]}</TD><TD>{columna_T[n-1]}</TD><TD>{Token[n-1]}</TD>
                         </TR>"""
-            mensaje3="""
+            
+            mensaje2+=temp_mensaje
+        mensaje3="""
                     </TABLE>
                 </body>
             </html>
                 """
-            mensaje2+=temp_mensaje
         mensajefinal=mensaje+mensaje2+mensaje3
         g.write(mensajefinal)
         g.close()
@@ -249,6 +281,11 @@ def graficoMapa():
     try:
         archivo=open('graficaMapa.dot', 'w')
         contenido="digraph mapa{"
+        x=f"""
+labelloc="t"
+label="{Titulo_l[0]}"
+        """
+        contenido+=x
         n=0
         estamos="nada"
         Nodo_nombre=list()
@@ -258,12 +295,17 @@ def graficoMapa():
         C_peso=list()
         C_fin=list()
         C_inicio=list()
+
         for p in Token:
             texto_tem=""
             if Token[n]=="estacion":
                 estamos="estacion"
             elif Token[n]=="ruta":
                 estamos="ruta"
+            elif Token[n]=="nombre" and Lexema[n]==Titulo_l[0]:
+                Token.pop(n)
+                Lexema.pop(n)
+                continue
             elif Token[n]=="nombre" and estamos=="estacion":
                 Nodo_nombre.append(Lexema[n])
             elif Token[n]=="color" and estamos=="estacion":
@@ -323,6 +365,9 @@ def graficoRutas():
                 estamos="estacion"
             elif Token[n]=="ruta":
                 estamos="ruta"
+            elif Token[n]=="nombre" and Lexema[n]==Titulo_l[0]:
+                Token.pop(n)
+                Lexema.pop(n)
             elif Token[n]=="nombre" and estamos=="estacion":
                 estaciones.append(Lexema[n])
             elif Token[n]=="color" and estamos=="estacion":
@@ -369,18 +414,24 @@ def graficoRutas():
 
         archivo=open('graficaRuta.dot', 'w')
         contenido="digraph Ruta{"
-
+        x=f"""
+labelloc="t"
+label="{Titulo_l[0]}"
+        """
+        contenido+=x
         n=0
         k=0
         posciones2=list()
-        for p in estaciones:
-
-            if k==(len(cabeza)-1):
-                break
-            elif p==cabeza[k]:
-                posciones2.append(n)
-                k+=1
-            n+=1
+        try:
+            for p in estaciones:
+                if k==(len(cabeza)-1):
+                    break 
+                elif p==cabeza[k]:
+                    posciones2.append(n)
+                    k+=1
+                n+=1
+        except:
+            print("error")
 
         for p in posciones2:
             temp_contenido=f""" 
@@ -398,8 +449,8 @@ peso: {C_peso[p]}" ];
         contenido+="}"
         archivo.write(contenido)
         archivo.close()
-    if input()=="exit":
-        menu()
+        if input()=="exit":
+            menu()
 
 
     
